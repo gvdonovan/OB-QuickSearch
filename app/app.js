@@ -42,7 +42,8 @@ scotchApp.factory('sampleService', function ($timeout, $q) {
 
     var service = {
         sayHello: sayHello,
-        getFormConfig: getFormConfig
+        getFormConfig: getFormConfig,
+        search: search
     }
     return service;
 
@@ -57,25 +58,95 @@ scotchApp.factory('sampleService', function ($timeout, $q) {
                 type: "object",
                 properties: {
                     occupancy: {
+                        type: "string",
+                        default: "Owner Occupied"
+                    },
+                    propertyType: {
+                        type: "string",
+                        default: "Single Family"
+                    },
+                    loanPurpose: {
                         type: "string"
+                    },
+                    purchasePrice: {
+                        type: "number"
+                    },
+                    downPayment: {
+                        type: "number"
+                    },
+                    zip: {
+                        type: "string"
+                    },
+                    creditScore: {
+                        type: "string",
+                        default: "740-779"
                     }
-                }
+                },
+                required: ["occupancy", "purchasePrice", "loanPurpose"]
             },
             form: [
                 {
                     key: "occupancy",
                     type: "select",
+                    title: "Occupancy",
                     titleMap: [
                         {value: "Owner Occupied", name: "Owner Occupied"},
-                        {value: "Owner Occupied", name: "Owner Occupied"},
-                        {value: "Owner Occupied", name: "Owner Occupied"}
+                        {value: "Other", name: "Other"},
+                        {value: "Biff", name: "Biff"}
                     ]
+                },
+                {
+                    key: "propertyType",
+                    type: "select",
+                    title: "Property Type",
+                    titleMap: [
+                        {value: "Single Family", name: "Single Family"},
+                        {value: "PUD", name: "PUD"},
+                        {value: "Multi-Family", name: "Multi-Family"},
+                        {value: "Manufactured / Single Wide", name: "Manufactured / Single Wide"},
+                        {value: "Manufactured / Double Wide", name: "Manufactured / Double Wide"},
+                        {value: "Timeshare", name: "Timeshare"},
+                        {value: "Condotel", name: "Condotel"},
+                        {value: "Non-warrantable Condo", name: "Non-warrantable Condo"},
+                        {value: "Modular", name: "Modular"},
+                    ]
+                },
+                {
+                    key: "loanPurpose",
+                    title: "Loan Purpose",
+                    disableSuccessState: true,
+                    feedback: false
+                },
+                {
+                    key: "purchasePrice",
+                    title: "Purchase Price",
+                    placeholder: "0.00",
+                    validationMessages: {
+                        'minCheck': 'Bob is not OK! You here me?'
+                    },
+                    $validators: {
+                        minCheck: function (value) {
+                            var bool = true;
+                            if (value < 0) {
+                                bool = false;
+                            }
+                            return bool;
+                        }
+                    }
                 }
+
             ]
         };
         deferred.resolve(data);
         return deferred.promise;
     };
+
+    function search(bool) {
+        var deferred = $q.defer();
+        var validSearch = bool;
+        deferred.resolve(validSearch);
+        return deferred.promise;
+    }
 });
 
 // create the controller and inject Angular's $scope
@@ -92,14 +163,22 @@ scotchApp.controller('contactController', function ($scope) {
     $scope.message = 'Contact us! JK. This is just a demo.';
 });
 
-scotchApp.controller('dynamicFormController', function ($scope, sampleService) {
+scotchApp.controller('dynamicFormController', function ($scope, sampleService, $timeout) {
     // create a message to display in our view
     $scope.message = 'Dynamic Form!';
 
+    var vm = {
+        submit: submit,
+        isLoading: false,
+        showJson: false,
+        json: ""
+    };
+    $scope.vm = vm;
+
     init();
 
-    function init(){
-        sampleService.getFormConfig().then(function(data){
+    function init() {
+        sampleService.getFormConfig().then(function (data) {
             $scope.data = data;
             $scope.criteria = {};
 
@@ -140,6 +219,19 @@ scotchApp.controller('dynamicFormController', function ($scope, sampleService) {
             //];
         });
     };
+
+    function submit(isValid) {
+        vm.isLoading = true;
+        return sampleService.search(isValid).then(function (data) {
+            console.warn(data);
+            vm.json = JSON.stringify($scope.criteria, null, 4);
+            vm.showJson = true;
+            $timeout(function () {
+                vm.isLoading = false;
+            }, 500);
+        });
+    }
+
 });
 
 scotchApp.controller('quickSearchController', function ($scope, $timeout) {
