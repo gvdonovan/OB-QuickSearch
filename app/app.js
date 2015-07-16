@@ -26,6 +26,11 @@ scotchApp.config(function ($routeProvider) {
             controller: 'contactController'
         })
 
+        .when('/dynamicForm', {
+            templateUrl: 'app/views/dynamicForm.html',
+            controller: 'dynamicFormController'
+        })
+
         .when('/quickSearch', {
             templateUrl: 'app/views/quickSearch.html',
             controller: 'quickSearchController'
@@ -62,6 +67,11 @@ scotchApp.controller('aboutController', function ($scope) {
 
 scotchApp.controller('contactController', function ($scope) {
     $scope.message = 'Contact us! JK. This is just a demo.';
+});
+
+scotchApp.controller('dynamicFormController', function ($scope) {
+    // create a message to display in our view
+    $scope.message = 'Dynamic Form!';
 });
 
 scotchApp.controller('quickSearchController', function ($scope, $timeout) {
