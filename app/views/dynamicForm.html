@@ -3,3 +3,43 @@
 
     <p>{{ message }}</p>
 </div>
+<style>
+    #loading {
+        background: rgba(51, 122, 200, .8) no-repeat 50% 50%;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 999;
+    }
+
+    .vertical-center {
+        min-height: 100%;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .fa.icon-orange {
+        color: darkorange;
+    }
+</style>
+<div ng-show="vm.isLoading">
+    <loadingspinner></loadingspinner>
+</div>
+<div class="col-xs-12 col-md-6">
+    <div class="panel panel-primary">
+        <div class="panel-heading">Search</div>
+        <div class="panel-body">
+            <form name="ngform" sf-model="criteria" sf-form="form" sf-schema="schema"></form>
+        </div>
+        <div class="panel-footer clearfix">
+            <button type="submit" class="btn btn-primary pull-right" ng-click="submit()"
+                    ng-disabled="ngform.$invalid">Submit
+            </button>
+        </div>
+    </div>
+</div>

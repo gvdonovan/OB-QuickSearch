@@ -2,7 +2,7 @@
  * Created by gdonovan on 7/15/2015.
  */
 // create the module and name it scotchApp
-var scotchApp = angular.module('scotchApp', ['ngRoute']);
+var scotchApp = angular.module('scotchApp', ['ngRoute', 'schemaForm']);
 
 // configure our routes
 scotchApp.config(function ($routeProvider) {
@@ -37,22 +37,45 @@ scotchApp.config(function ($routeProvider) {
         });
 });
 
-scotchApp.service('quickSearchDataService', function ($scope, $timeout) {
-    var service ={
-        submitSearch: submitSearch
-    };
+scotchApp.factory('sampleService', function ($timeout, $q) {
+    var deferred = $q.defer();
 
+    var service = {
+        sayHello: sayHello,
+        getFormConfig: getFormConfig
+    }
     return service;
 
-    function submitSearch(criteria) {
-        var data = 'hello';
-        $timeout(function () {
-            return null;
-        }, 1000);
-        return data;
-    }
+    function sayHello(name) {
+        return 'Hi ' + name + '!';
+    };
 
-
+    function getFormConfig() {
+        var deferred = $q.defer();
+        var data = {
+            schema: {
+                type: "object",
+                properties: {
+                    occupancy: {
+                        type: "string"
+                    }
+                }
+            },
+            form: [
+                {
+                    key: "occupancy",
+                    type: "select",
+                    titleMap: [
+                        {value: "Owner Occupied", name: "Owner Occupied"},
+                        {value: "Owner Occupied", name: "Owner Occupied"},
+                        {value: "Owner Occupied", name: "Owner Occupied"}
+                    ]
+                }
+            ]
+        };
+        deferred.resolve(data);
+        return deferred.promise;
+    };
 });
 
 // create the controller and inject Angular's $scope
@@ -69,9 +92,54 @@ scotchApp.controller('contactController', function ($scope) {
     $scope.message = 'Contact us! JK. This is just a demo.';
 });
 
-scotchApp.controller('dynamicFormController', function ($scope) {
+scotchApp.controller('dynamicFormController', function ($scope, sampleService) {
     // create a message to display in our view
     $scope.message = 'Dynamic Form!';
+
+    init();
+
+    function init(){
+        sampleService.getFormConfig().then(function(data){
+            $scope.data = data;
+            $scope.criteria = {};
+
+            $scope.schema = $scope.data.schema;
+            // {
+            //    "type": "object",
+            //    "properties": {
+            //        "name": {
+            //            "title": "Name",
+            //            "type": "string"
+            //        },
+            //        "email": {
+            //            "title": "Email",
+            //            "type": "string",
+            //            "pattern": "^\\S+@\\S+$",
+            //            "description": "Email will be used for evil."
+            //        },
+            //        "comment": {
+            //            "title": "Comment",
+            //            "type": "string",
+            //            "maxLength": 20,
+            //            "validationMessage": "Don't be greedy!"
+            //        }
+            //    },
+            //    "required": ["name", "email", "comment"]
+            //};
+
+            //How form is presented
+            $scope.form = $scope.data.form;
+            //    [
+            //    "name",
+            //    "email",
+            //    {
+            //        "key": "comment",
+            //        "type": "textarea",
+            //        "placeholder": "Make a comment"
+            //    }
+            //];
+        });
+    };
 });
 
 scotchApp.controller('quickSearchController', function ($scope, $timeout) {
@@ -106,7 +174,9 @@ scotchApp.controller('quickSearchController', function ($scope, $timeout) {
     function submit() {
         console.log("Submit Clicked" + vm.search);
         vm.isLoading = true;
-        $timeout( function(){ vm.isLoading = false; }, 1000);
+        $timeout(function () {
+            vm.isLoading = false;
+        }, 1000);
         //quickSearchDataService.submitSearch(vm.search).then(function (data) {
         //    console.log(data);
         //});
