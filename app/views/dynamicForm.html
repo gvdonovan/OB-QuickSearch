@@ -37,16 +37,57 @@
             <form name="ngform" sf-model="criteria" sf-form="form" sf-schema="schema"></form>
         </div>
         <div class="panel-footer clearfix">
-            <button type="submit" class="btn btn-primary pull-right" ng-click="vm.submit(ngform.$invalid)"
-                    ng-disabled="ngform.$invalid">Submit
+            <button type="submit" class="btn btn-primary pull-right" ng-click="vm.submit()"
+                    ng-disabled="ngform.$invalid" du-smooth-scroll="searchResults" du-scrollspy>Submit
             </button>
         </div>
     </div>
 </div>
 
+<div id="searchResults" class="col-xs-12 col-md-6" ng-show="vm.searchResults != null" ng-repeat="type in vm.searchResults">
+    <div class="panel panel-info">
+        <div class="panel-heading">{{type.title}}</div>
+        <div class="panel-body">
+            <div class="table-responsive">
+                <table class="table table-condensed table-hover">
+                    <thead>
+                        <tr>
+                            <th>Rate</th>
+                            <th>Disc Points</th>
+                            <th>APR</th>
+                            <th>Months Payment</th>
+                            <th>Closing Costs</th>
+                            <th>Rebate</th>
+                            <th>Apply</th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="item in type.items">
+                        <td>{{item.rate}}</td>
+                        <td>{{item.discPoints}}</td>
+                        <td>{{item.apr}}</td>
+                        <td>{{item.months}}</td>
+                        <td>{{item.closingCost}}</td>
+                        <td>{{item.rebate}}</td>
+                        <td><a class="clickable" href="">Apply Now</a></td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="col-xs-12 col-md-6" ng-show="vm.showJson">
     <div class="panel panel-success">
         <div class="panel-heading">Data</div>
         <div class="panel-body">{{vm.json}}</div>
+    </div>
+</div>
+
+<div class="col-xs-12 col-md-6" ng-show="vm.underScoreJson.length > 0">
+    <div class="panel panel-danger">
+        <div class="panel-heading">loans with rebate >= 500</div>
+        <div class="panel-body">{{vm.underScoreJson}}</div>
     </div>
 </div>

@@ -2,7 +2,7 @@
  * Created by gdonovan on 7/15/2015.
  */
 // create the module and name it scotchApp
-var scotchApp = angular.module('scotchApp', ['ngRoute', 'schemaForm']);
+var scotchApp = angular.module('scotchApp', ['ngRoute', 'schemaForm', 'duScroll']);
 
 // configure our routes
 scotchApp.config(function ($routeProvider) {
@@ -43,7 +43,7 @@ scotchApp.factory('sampleService', function ($timeout, $q) {
     var service = {
         sayHello: sayHello,
         getFormConfig: getFormConfig,
-        search: search
+        getResults: getResults
     }
     return service;
 
@@ -141,12 +141,154 @@ scotchApp.factory('sampleService', function ($timeout, $q) {
         return deferred.promise;
     };
 
-    function search(bool) {
+    function getResults(criteria) {
         var deferred = $q.defer();
-        var validSearch = bool;
-        deferred.resolve(validSearch);
+        if (criteria != null) {
+            var data = getMockedResults();
+            deferred.resolve(data);
+        }
+        else {
+            deferred.resolve();
+        }
         return deferred.promise;
-    }
+    };
+
+    ////////////////////// Privates
+
+    function getMockedResults() {
+        var results = [
+            {
+                title: 'Conforming 30 Yr Fixed',
+                items: [
+                    {
+                        rate: 3.875,
+                        discPoints: 1875.00,
+                        apr: 3.996,
+                        months: 360,
+                        payment: 1411.00,
+                        closingCost: 4675.00,
+                        rebate: 0.00
+                    },
+                    {
+                        rate: 4,
+                        discPoints: 1700.00,
+                        apr: 3.999,
+                        months: 360,
+                        payment: 1511.00,
+                        closingCost: 3075.00,
+                        rebate: 10.00
+                    },
+                    {
+                        rate: 4.2,
+                        discPoints: 1500.00,
+                        apr: 4.100,
+                        months: 360,
+                        payment: 1611.00,
+                        closingCost: 500.00,
+                        rebate: 500.00
+                    }
+                ]
+            },
+            {
+                title: 'Conforming 15 Yr Fixed',
+                items: [
+                    {
+                        rate: 3.875,
+                        discPoints: 1875.00,
+                        apr: 3.996,
+                        months: 360,
+                        payment: 1411.00,
+                        closingCost: 4675.00,
+                        rebate: 90.00
+                    },
+                    {
+                        rate: 4,
+                        discPoints: 1700.00,
+                        apr: 3.999,
+                        months: 360,
+                        payment: 1511.00,
+                        closingCost: 3075.00,
+                        rebate: 620.00
+                    },
+                    {
+                        rate: 4.2,
+                        discPoints: 1500.00,
+                        apr: 4.100,
+                        months: 360,
+                        payment: 1611.00,
+                        closingCost: 500.00,
+                        rebate: 750.00
+                    }
+                ]
+            },
+            {
+                title: 'Conforming 5/1 ARM',
+                items: [
+                    {
+                        rate: 3.875,
+                        discPoints: 1875.00,
+                        apr: 3.996,
+                        months: 360,
+                        payment: 1411.00,
+                        closingCost: 4675.00,
+                        rebate: 0.00
+                    },
+                    {
+                        rate: 4,
+                        discPoints: 1700.00,
+                        apr: 3.999,
+                        months: 360,
+                        payment: 1511.00,
+                        closingCost: 3075.00,
+                        rebate: 10.00
+                    },
+                    {
+                        rate: 4.2,
+                        discPoints: 1500.00,
+                        apr: 4.100,
+                        months: 360,
+                        payment: 1611.00,
+                        closingCost: 500.00,
+                        rebate: 875.00
+                    }
+                ]
+            },
+            {
+                title: 'Conforming 3/1 ARM',
+                items: [
+                    {
+                        rate: 3.875,
+                        discPoints: 1875.00,
+                        apr: 3.996,
+                        months: 360,
+                        payment: 1411.00,
+                        closingCost: 4675.00,
+                        rebate: 0.00
+                    },
+                    {
+                        rate: 4,
+                        discPoints: 1700.00,
+                        apr: 3.999,
+                        months: 360,
+                        payment: 1511.00,
+                        closingCost: 3075.00,
+                        rebate: 10.00
+                    },
+                    {
+                        rate: 4.2,
+                        discPoints: 1500.00,
+                        apr: 4.100,
+                        months: 360,
+                        payment: 1611.00,
+                        closingCost: 500.00,
+                        rebate: 220.00
+                    }
+                ]
+            }
+        ]
+
+        return results;
+    };
 });
 
 // create the controller and inject Angular's $scope
@@ -163,7 +305,7 @@ scotchApp.controller('contactController', function ($scope) {
     $scope.message = 'Contact us! JK. This is just a demo.';
 });
 
-scotchApp.controller('dynamicFormController', function ($scope, sampleService, $timeout) {
+scotchApp.controller('dynamicFormController', function ($scope, sampleService, $timeout, $document) {
     // create a message to display in our view
     $scope.message = 'Dynamic Form!';
 
@@ -171,7 +313,9 @@ scotchApp.controller('dynamicFormController', function ($scope, sampleService, $
         submit: submit,
         isLoading: false,
         showJson: false,
-        json: ""
+        json: "",
+        searchResults: [],
+        underScoreJson: ""
     };
     $scope.vm = vm;
 
@@ -182,6 +326,7 @@ scotchApp.controller('dynamicFormController', function ($scope, sampleService, $
             $scope.data = data;
             $scope.criteria = {};
 
+            // configurations of the form
             $scope.schema = $scope.data.schema;
             // {
             //    "type": "object",
@@ -220,16 +365,26 @@ scotchApp.controller('dynamicFormController', function ($scope, sampleService, $
         });
     };
 
-    function submit(isValid) {
+    function submit() {
         vm.isLoading = true;
-        return sampleService.search(isValid).then(function (data) {
-            console.warn(data);
+        return sampleService.getResults($scope.criteria).then(function (data) {
+            vm.searchResults = data;
             vm.json = JSON.stringify($scope.criteria, null, 4);
             vm.showJson = true;
+            vm.underScoreJson = underScoreFilter();
             $timeout(function () {
                 vm.isLoading = false;
             }, 500);
         });
+    }
+
+    function underScoreFilter(){
+      var biff =  _.pluck(vm.searchResults, 'items');
+        var flat = _.flatten(biff);
+      var x =  _.filter(flat, function(item){
+           return item.rebate >= 500;
+        });
+       return x;
     }
 
 });
